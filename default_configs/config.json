@@ -14,10 +14,80 @@
             "workshopIDs": []
         },
         {
+            "name": "Yukon",
+            "workshopIDs": []
+        },
+        {
+            "name": "Germany",
+            "workshopIDs": []
+        },
+        {
+            "name": "A6 Polaris",
+            "workshopIDs": [ 2898548949 ]
+        },
+        {
+            "name": "Arid",
+            "workshopIDs": [ 2683620106 ]
+        },
+        {
+            "name": "Belgium",
+            "workshopIDs": [ 1727125581 ]
+        },
+        {
             "name": "Buak",
-            "workshopIDs": [
-                3000549606
-            ]
+            "workshopIDs": [ 3000549606 ]
+        },
+        {
+            "name": "California",
+            "workshopIDs": [ 1905768396 ]
+        },
+        {
+            "name": "Carpat",
+            "workshopIDs": [ 1497352180 ]
+        },
+        {
+            "name": "Cyprus Arena",
+            "workshopIDs": [ 1647991167 ]
+        },
+        {
+            "name": "Cyprus Survival",
+            "workshopIDs": [ 1647986053 ]
+        },
+        {
+            "name": "Easter Island",
+            "workshopIDs": [ 1983200271 ]
+        },
+        {
+            "name": "Escalation",
+            "workshopIDs": [ 3251926587 ]
+        },
+        {
+            "name": "Elver",
+            "workshopIDs": [ 2136497468 ]
+        },
+        {
+            "name": "France",
+            "workshopIDs": [ 1975500516 ]
+        },
+        {
+            "name": "Greece",
+            "workshopIDs": [ 1702240229 ]
+        },
+        {
+            "name": "Hawaii",
+            "workshopIDs": [ 1753134636 ]
+        },
+        {
+            "name": "Ireland",
+            "workshopIDs": [ 1411633953 ]
+        },
+        {
+            "name": "Kuwait",
+            "workshopIDs": [ 2483365750 ]
+        },
+        {
+            "name": "Rio de Janeiro",
+            "workshopIDs": [ 1821848824 ]
         }
     ]
 }
