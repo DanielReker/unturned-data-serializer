@@ -163,7 +163,7 @@ namespace UnturnedDataSerializer {
                 return;
 
             string directory = "/app/output/";
-            string mapDirectory = $"{directory}{Level.info.name}/";
+            string mapDirectory = $"{directory}Maps/{Level.info.name}/";
             string assetsDirectory = $"{directory}Assets/";
             Directory.CreateDirectory(mapDirectory);
             Directory.CreateDirectory(assetsDirectory);
