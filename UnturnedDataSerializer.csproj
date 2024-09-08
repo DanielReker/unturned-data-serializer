@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="7.0.1" />
+    <PackageReference Include="RocketModFix.UnityEngine.Redist" Version="2021.3.29.1" />
+    <PackageReference Include="RocketModFix.Unturned.Redist.Server" Version="3.24.5.1" />
+  </ItemGroup>
+</Project>

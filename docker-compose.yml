@@ -1,0 +1,9 @@
+services:
+  unturned-data-serializer:
+    container_name: unturned-data-serializer
+    build: .
+    volumes:
+      - ./U3DS/:/app/U3DS/
+      - ./output/:/app/output/
+      - ./configs/:/app/configs/
+    

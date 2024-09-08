@@ -1,0 +1,23 @@
+{
+    "serverName": "Test",
+    "maps": [
+        {
+            "name": "PEI",
+            "workshopIDs": []
+        },
+        {
+            "name": "Washington",
+            "workshopIDs": []
+        },
+        {
+            "name": "Russia",
+            "workshopIDs": []
+        },
+        {
+            "name": "Buak",
+            "workshopIDs": [
+                3000549606
+            ]
+        }
+    ]
+}

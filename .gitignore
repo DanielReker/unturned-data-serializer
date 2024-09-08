@@ -1,0 +1,4 @@
+U3DS/*
+output/*
+configs/config.json
+!/**/.gitkeep
