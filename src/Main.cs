@@ -67,9 +67,14 @@ namespace UnturnedDataSerializer {
             for (int regionX = 0; regionX < objects.GetLength(0); regionX++) {
                 for (int regionY = 0; regionY < objects.GetLength(1); regionY++) {
                     foreach (var obj in objects[regionX, regionY]) {
-                        var serializedObject = JObject.FromObject(obj, serializer);
-                        serializedObject.Add("region", new JObject(new JProperty("x", regionX), new JProperty("y", regionY)));
-                        serializedObjects.Add(serializedObject);
+                        try {
+                            var serializedObject = JObject.FromObject(obj, serializer);
+                        	serializedObject.Add("region", new JObject(new JProperty("x", regionX), new JProperty("y", regionY)));
+                        	serializedObjects.Add(serializedObject);
+                        } catch (Exception e) {
+                            // TODO: Find out what causes exception when serializing California level objects
+                            CommandWindow.LogError($"Exception in UnwrapRegions: {e.Message}");
+                        }
                     }
                 }
             }
