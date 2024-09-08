@@ -1,6 +1,7 @@
 import subprocess
 import os
 import json
+import time
 
 
 def load_config():
@@ -43,9 +44,35 @@ def run_server(map_cfg):
 
     subprocess.run(f'cd /app/U3DS && ./ServerHelper.sh +LanServer/{server_name}', shell=True)
 
+def generate_metadata():
+    with open('/app/U3DS/Status.json', 'r') as file:
+        status = json.load(file)
+
+    metadata = {
+        'timestamp': int(time.time()),
+        'gameVersion': {
+            'major': status['Game']['Major_Version'],
+            'minor': status['Game']['Minor_Version'],
+            'patch': status['Game']['Patch_Version']
+        },
+        'availableMaps': [],
+        'status' : 'success'
+    }
+
+    for map_cfg in cfg['maps']:
+        map_name = map_cfg['name']
+        if os.path.isdir(f'/app/output/Maps/{map_name}/'):
+            metadata['availableMaps'].append(map_name)
+        else:
+            metadata['status'] = 'fail'
+
+    with open('/app/output/metadata.json', 'w+') as file:
+        json.dump(metadata, file)
+
+
 clean_output()
 update_server()
 install_module()
-
 for map_cfg in cfg['maps']:
     run_server(map_cfg)
+generate_metadata()

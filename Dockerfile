@@ -6,7 +6,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["UnturnedDataSerializer.csproj", "."]
 RUN dotnet restore "./UnturnedDataSerializer.csproj"
-COPY . .
+COPY ./src ./src
 RUN dotnet build "./UnturnedDataSerializer.csproj" -c $BUILD_CONFIGURATION -o /app/build
 WORKDIR /app/build
 RUN cp 0Harmony.dll /app/modules/UnturnedDataSerializer/ && \
@@ -23,5 +23,4 @@ COPY entry.py /app/entry.py
 COPY [ "default_configs/", "/app/default_configs/" ]
 
 USER steam
-CMD [ "python3", "/app/entry.py" ]
-#ENTRYPOINT [ "/bin/bash" ]
+ENTRYPOINT [ "python3", "/app/entry.py" ]
