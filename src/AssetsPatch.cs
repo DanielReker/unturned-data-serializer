@@ -39,7 +39,7 @@ namespace UnturnedDataSerializer {
             path = path.Substring(path.IndexOf('/') + 1);
             path = path.Substring(path.IndexOf('/') + 1);
 
-            CommandWindow.Log($"Asset #{assets}: name: {name}, path: {path}");
+            //CommandWindow.Log($"Asset #{assets}: name: {name}, path: {path}");
 
             try {
                 var assetData = (DatDictionary)AccessTools.Field(type, "assetData").GetValue(file);

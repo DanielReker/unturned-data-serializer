@@ -2,3 +2,7 @@ U3DS/*
 output/*
 configs/config.json
 !/**/.gitkeep
+.idea/
+bin/
+obj/
+/Folder.DotSettings.user

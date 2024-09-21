@@ -55,7 +55,7 @@ namespace UnturnedDataSerializer {
         public static void SerializeToFile(object obj, string path) {
             using (var streamWriter = File.CreateText(path))
             using (var jsonWriter = new JsonTextWriter(streamWriter)) {
-                CommandWindow.Log(String.Format("Exporting {0} to {1}", obj.GetType().FullName, path));
+                //CommandWindow.Log(String.Format("Exporting {0} to {1}", obj.GetType().FullName, path));
                 jsonWriter.Formatting = Formatting.Indented;
                 serializer.Serialize(jsonWriter, obj);
             }
