@@ -28,13 +28,13 @@ def install_module():
 
 def remove_map_output(map_name):
     print(f"Removing {map_name} output...")
-    subprocess.run("rm -r /app/output/Maps/", shell=True)
+    subprocess.run(f"rm -r '/app/output/Maps/{map_name}/'", shell=True)
 
 
 def generate_tiles_for_map(map_name, map_type):
     print(f"Generating tiles for {map_name} {map_type}...")
     map_dir = f"/app/output/Maps/{map_name}"
-    subprocess.run(f"/usr/bin/gdal2tiles.py -p raster --xyz {map_dir}/{map_type}.png {map_dir}/{map_type}/", shell=True)    
+    subprocess.run(f"/usr/bin/gdal2tiles.py -p raster --xyz '{map_dir}/{map_type}.png' '{map_dir}/{map_type}/'", shell=True)    
 
     # Save grid info as JSON
     # TODO: Rewrite grid info fetching
@@ -50,7 +50,7 @@ def generate_tiles_for_map(map_name, map_type):
     with open(f'{map_dir}/{map_type}/grid.json', 'w+') as file:
         json.dump(grid, file, indent=4)
 
-    subprocess.run(f"rm {map_dir}/{map_type}/openlayers.html", shell=True)
+    subprocess.run(f"rm '{map_dir}/{map_type}/openlayers.html'", shell=True)
 
 def run_server(map_cfg):
     map_name = map_cfg['name']
