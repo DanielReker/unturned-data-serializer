@@ -1,4 +1,5 @@
 import re
+import shutil
 import subprocess
 import os
 import json
@@ -16,7 +17,8 @@ def load_config():
 
 cfg = load_config()
 server_name = cfg['serverName']
-
+maps_list = [ map_cfg['name'] for map_cfg in cfg['maps']  ]
+print(maps_list)
 
 def update_server():
     print("Updating server...")
@@ -105,9 +107,19 @@ def generate_metadata():
     with open('/app/output/metadata.json', 'w+') as file:
         json.dump(metadata, file, indent=4)
 
+def clean_output():
+    directory = '/app/output/Maps'
+    for name in os.listdir(directory):
+        path = os.path.join(directory, name)
+        if os.path.isfile(path):
+            os.remove(path)
+        elif name not in maps_list:
+            shutil.rmtree(path)
+            
 
 update_server()
 install_module()
+clean_output()
 for map_cfg in cfg['maps']:
     run_server(map_cfg)
 generate_metadata()
