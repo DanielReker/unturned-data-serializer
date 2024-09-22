@@ -169,9 +169,9 @@ namespace UnturnedDataSerializer {
 
             string directory = "/app/output/";
             string mapDirectory = $"{directory}Maps/{Level.info.name}/";
-            string assetsDirectory = $"{directory}Assets/";
+            //string assetsDirectory = $"{directory}Assets/";
             Directory.CreateDirectory(mapDirectory);
-            Directory.CreateDirectory(assetsDirectory);
+            //Directory.CreateDirectory(assetsDirectory);
 
             SerializeToFile(LevelItems.tables, mapDirectory + "level_items_tables.json");
             SerializeToFile(UnwrapRegions(LevelItems.spawns), mapDirectory + "level_items_spawns.json");
@@ -206,7 +206,7 @@ namespace UnturnedDataSerializer {
 
             SerializeMapBounds(mapDirectory);
 
-            SerializeAssets(assetsDirectory);
+            //SerializeAssets(assetsDirectory);
 
 
             CommandWindow.Log("Shutting down...");
