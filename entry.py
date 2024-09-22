@@ -34,7 +34,8 @@ def remove_map_output(map_name):
 def generate_tiles_for_map(map_name, map_type):
     print(f"Generating tiles for {map_name} {map_type}...")
     map_dir = f"/app/output/Maps/{map_name}"
-    subprocess.run(f"/usr/bin/gdal2tiles.py -p raster --xyz '{map_dir}/{map_type}.png' '{map_dir}/{map_type}/'", shell=True)    
+    subprocess.run(f"/usr/bin/gdal_translate -of vrt -expand rgba '{map_dir}/{map_type}.png' /app/temp.vrt", shell=True)    
+    subprocess.run(f"/usr/bin/gdal2tiles.py -p raster --xyz /app/temp.vrt '{map_dir}/{map_type}/'", shell=True)    
 
     # Save grid info as JSON
     # TODO: Rewrite grid info fetching
@@ -55,10 +56,9 @@ def generate_tiles_for_map(map_name, map_type):
 def run_server(map_cfg):
     map_name = map_cfg['name']
     
-    print(f"Running server for {map_name}")
 
     remove_map_output(map_name)
-
+    
     os.makedirs(f'/app/U3DS/Servers/{server_name}/Server/', exist_ok=True)
 
     with open(f'/app/default_configs/WorkshopDownloadConfig.json', 'r') as file:
@@ -70,6 +70,8 @@ def run_server(map_cfg):
     with open(f'/app/U3DS/Servers/{server_name}/Server/Commands.dat', 'w+') as file:
         file.write(f'Map {map_name}')
 
+    print(f"Running server for {map_name}")
+    
     subprocess.run(f'cd /app/U3DS && ./ServerHelper.sh +LanServer/{server_name}', shell=True)
     
     generate_tiles_for_map(map_name, 'Map')

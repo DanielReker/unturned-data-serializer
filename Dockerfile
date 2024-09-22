@@ -18,9 +18,10 @@ FROM cm2network/steamcmd:root AS final
 RUN apt-get update && \
     apt-get install -y ca-certificates python3 gdal-bin
 
-COPY --from=build ["/app/modules/", "/app/modules/"]
-COPY entry.py /app/entry.py
-COPY [ "default_configs/", "/app/default_configs/" ]
-
 USER steam
+
+COPY --chown=steam:steam --from=build ["/app/modules/", "/app/modules/"]
+COPY --chown=steam:steam entry.py /app/entry.py
+COPY --chown=steam:steam [ "default_configs/", "/app/default_configs/" ]
+
 ENTRYPOINT [ "python3", "/app/entry.py" ]
