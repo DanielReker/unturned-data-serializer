@@ -34,8 +34,10 @@ def remove_map_output(map_name):
 def generate_tiles_for_map(map_name, map_type):
     print(f"Generating tiles for {map_name} {map_type}...")
     map_dir = f"/app/output/Maps/{map_name}"
-    subprocess.run(f"/usr/bin/gdal_translate -of vrt -expand rgba '{map_dir}/{map_type}.png' /app/temp.vrt", shell=True)    
-    subprocess.run(f"/usr/bin/gdal2tiles.py -p raster --xyz /app/temp.vrt '{map_dir}/{map_type}/'", shell=True)    
+    # TODO: Try to make image re-encoding more efficient
+    subprocess.run(f"gdal_translate -of png -expand rgba '{map_dir}/{map_type}.png' /tmp/temp.png", shell=True)
+    subprocess.run(f"[ -f /tmp/temp.png ] && mv -f /tmp/temp.png '{map_dir}/{map_type}.png'", shell=True)
+    subprocess.run(f"gdal2tiles.py -p raster --xyz '{map_dir}/{map_type}.png' '{map_dir}/{map_type}/'", shell=True)
 
     # Save grid info as JSON
     # TODO: Rewrite grid info fetching
