@@ -1,3 +1,4 @@
+import re
 import subprocess
 import os
 import json
@@ -16,9 +17,6 @@ def load_config():
 cfg = load_config()
 server_name = cfg['serverName']
 
-def clean_output():
-    print("Cleaning output directory...")
-    subprocess.run("rm -r /app/output/*", shell=True)
 
 def update_server():
     print("Updating server...")
@@ -28,8 +26,38 @@ def install_module():
     print("Installing UnturnedDataSerializer module...")
     subprocess.run("cp -rf /app/modules/UnturnedDataSerializer /app/U3DS/Modules/", shell=True)
 
+def remove_map_output(map_name):
+    print(f"Removing {map_name} output...")
+    subprocess.run("rm -r /app/output/Maps/", shell=True)
+
+
+def generate_tiles_for_map(map_name, map_type):
+    print(f"Generating tiles for {map_name} {map_type}...")
+    map_dir = f"/app/output/Maps/{map_name}"
+    subprocess.run(f"/usr/bin/gdal2tiles.py -p raster --xyz {map_dir}/{map_type}.png {map_dir}/{map_type}/", shell=True)    
+
+    # Save grid info as JSON
+    # TODO: Rewrite grid info fetching
+    with open(f'{map_dir}/{map_type}/openlayers.html', 'r') as file:
+        html = file.read()
+    to_find = "tileGrid: new ol.tilegrid.TileGrid("
+    idx_begin = html.find(to_find) + len(to_find)
+    html = html[idx_begin::]
+    html = html[:html.find(')'):]
+    html = re.sub(r'(\w+):', r'"\g<1>":', html)
+    
+    grid = json.loads(html)
+    with open(f'{map_dir}/{map_type}/grid.json', 'w+') as file:
+        json.dump(grid, file, indent=4)
+
+    subprocess.run(f"rm {map_dir}/{map_type}/openlayers.html", shell=True)
+
 def run_server(map_cfg):
     map_name = map_cfg['name']
+    
+    print(f"Running server for {map_name}")
+
+    remove_map_output(map_name)
 
     os.makedirs(f'/app/U3DS/Servers/{server_name}/Server/', exist_ok=True)
 
@@ -43,6 +71,10 @@ def run_server(map_cfg):
         file.write(f'Map {map_name}')
 
     subprocess.run(f'cd /app/U3DS && ./ServerHelper.sh +LanServer/{server_name}', shell=True)
+    
+    generate_tiles_for_map(map_name, 'Map')
+    generate_tiles_for_map(map_name, 'Chart')
+    
 
 def generate_metadata():
     with open('/app/U3DS/Status.json', 'r') as file:
@@ -67,10 +99,9 @@ def generate_metadata():
             metadata['status'] = 'fail'
 
     with open('/app/output/metadata.json', 'w+') as file:
-        json.dump(metadata, file)
+        json.dump(metadata, file, indent=4)
 
 
-clean_output()
 update_server()
 install_module()
 for map_cfg in cfg['maps']:

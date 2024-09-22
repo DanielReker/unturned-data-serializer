@@ -16,7 +16,7 @@ RUN cp 0Harmony.dll /app/modules/UnturnedDataSerializer/ && \
 FROM cm2network/steamcmd:root AS final
 
 RUN apt-get update && \
-    apt-get install -y ca-certificates python3
+    apt-get install -y ca-certificates python3 gdal-bin
 
 COPY --from=build ["/app/modules/", "/app/modules/"]
 COPY entry.py /app/entry.py
