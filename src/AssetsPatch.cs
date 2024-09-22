@@ -52,7 +52,12 @@ namespace UnturnedDataSerializer {
                     new JProperty("translation", Main.SerializeToken(translationData))
                 );
 
-                Main.assets.Add(assetSerialized);
+                try {
+                    Main.assets.Add(assetSerialized["data"]["GUID"].Value<string>(), assetSerialized);
+                } catch (Exception e)
+                {
+                    CommandWindow.LogError("It seems like some asset has no GUID");
+                }
             } catch (Exception ex) {
                 CommandWindow.Log($"EXCEPTION: {ex.Message}");
             }

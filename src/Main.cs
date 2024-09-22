@@ -12,8 +12,9 @@ using SDG.Framework.Water;
 using UnityEngine;
 
 namespace UnturnedDataSerializer {
-    public class Main : IModuleNexus {
-        public static List<JObject> assets = new List<JObject>();
+    public class Main : IModuleNexus
+    {
+        public static SortedDictionary<string, JObject> assets = new SortedDictionary<string, JObject>();
 
         private static readonly JsonSerializerSettings _json = new JsonSerializerSettings() {
             DateFormatHandling = DateFormatHandling.IsoDateFormat,
@@ -84,8 +85,9 @@ namespace UnturnedDataSerializer {
 
         public static void SerializeAssets(string directory) {
             foreach (var asset in assets) {
-                if (asset["data"] != null && asset["data"]["GUID"] is JValue) {
-                    string GUID = ((JValue)asset["data"]["GUID"]).Value as string;
+                if (asset.Value["data"] != null)
+                {
+                    var GUID = asset.Key;
                     SerializeToFile(asset, $"{directory}{GUID}.json");
                 } else {
                     CommandWindow.LogError($"Asset {asset.ToString()} has no GUID");
