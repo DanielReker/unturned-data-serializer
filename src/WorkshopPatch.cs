@@ -43,6 +43,7 @@ namespace UnturnedDataSerializer {
             
             uint resultsCount = callback.m_unNumResultsReturned;
             Logger.Log($"{resultsCount} items in query result");
+            HashSet<PublishedFileId_t> queryResultWorkshopItems = new HashSet<PublishedFileId_t>();
             for (uint index = 0; index < resultsCount; index++) {
                 SteamUGCDetails_t details;
                 SteamGameServerUGC.GetQueryUGCResult(queryHandle, index, out details);
@@ -52,6 +53,7 @@ namespace UnturnedDataSerializer {
                 Logger.Log($"{workshopID}, last update: {lastUpdated}");
                 
                 items.Add(workshopID.ToString(), new Item { version = lastUpdated, dependencies = new SortedSet<string>()});
+                queryResultWorkshopItems.Add(details.m_nPublishedFileId);
                 
                 PublishedFileId_t[] children = new PublishedFileId_t[(int)childrenCount];
                 SteamGameServerUGC.GetQueryUGCChildren(queryHandle, index, children,
@@ -59,9 +61,15 @@ namespace UnturnedDataSerializer {
 
                 foreach (var child in children) {
                     Logger.Log($"\t{child.m_PublishedFileId}");
-                    items[workshopID.ToString()].dependencies.Add(child.m_PublishedFileId.ToString());
+                    if (workshopItems.Contains(child))
+                        items[workshopID.ToString()].dependencies.Add(child.m_PublishedFileId.ToString());
+                    else
+                        Logger.Log($"Item {child} is child of {workshopID}, but is not downloaded");
                 }
             }
+            
+            if (!workshopItems.Equals(queryResultWorkshopItems))
+                Logger.LogError("Workshop items query result differs from downloaded workshop items!");
 
             using (var streamWriter = File.CreateText("/app/output/versions.json"))
             using (var jsonWriter = new JsonTextWriter(streamWriter)) {
