@@ -58,7 +58,6 @@ namespace UnturnedDataSerializer {
         public static void SerializeToFile(object obj, string path) {
             using (var streamWriter = File.CreateText(path))
             using (var jsonWriter = new JsonTextWriter(streamWriter)) {
-                //CommandWindow.Log(String.Format("Exporting {0} to {1}", obj.GetType().FullName, path));
                 jsonWriter.Formatting = Formatting.Indented;
                 serializer.Serialize(jsonWriter, obj);
             }
@@ -76,7 +75,7 @@ namespace UnturnedDataSerializer {
                         	serializedObjects.Add(serializedObject);
                         } catch (Exception e) {
                             // TODO: Find out what causes exception when serializing California level objects
-                            CommandWindow.LogError($"Exception in UnwrapRegions: {e.Message}");
+                            Logger.LogError($"Exception in UnwrapRegions: {e.Message}");
                         }
                     }
                 }
@@ -92,7 +91,7 @@ namespace UnturnedDataSerializer {
                     var GUID = asset.Key;
                     SerializeToFile(asset, $"{directory}{GUID}.json");
                 } else {
-                    CommandWindow.LogError($"Asset {asset.ToString()} has no GUID");
+                    Logger.LogError($"Asset {asset.ToString()} has no GUID");
                 }
             }
         }
@@ -108,7 +107,7 @@ namespace UnturnedDataSerializer {
             GameObject GO = new GameObject();
             Transform satelliteCaptureTransform = GO.transform;
             if ((UnityEngine.Object)mainVolume != (UnityEngine.Object)null) {
-                CommandWindow.Log("Cartography volume: found");
+                Logger.Log("Cartography volume: found");
                 Vector3 position;
                 Quaternion rotation;
                 mainVolume.GetSatelliteCaptureTransform(out position, out rotation);
@@ -122,7 +121,7 @@ namespace UnturnedDataSerializer {
                 captureWidth = size.x;
                 captureHeight = size.z;
             } else {
-                CommandWindow.Log("Cartography volume: not found");
+                Logger.Log("Cartography volume: not found");
                 imageWidth = (int)Level.size;
                 imageHeight = (int)Level.size;
                 captureWidth = (float)Level.size - (float)Level.border * 2f;
@@ -168,7 +167,7 @@ namespace UnturnedDataSerializer {
         }
         
         public static void Shutdown() {
-            CommandWindow.Log("Shutting down...");
+            Logger.Log("Shutting down...");
             SaveManager.save();
             Provider.shutdown();
         }
@@ -225,11 +224,10 @@ namespace UnturnedDataSerializer {
         public void initialize() {
             Harmony harmony = new Harmony("unturnedtestmodule");
             
-            CommandWindow.Log($"UnturnedDataSerializer: {File.ReadAllText("/app/dataSerializerConfig.json")}");
             var cfg = JObject.Parse(File.ReadAllText("/app/dataSerializerConfig.json"));
             mode = cfg["mode"].Value<string>();
+            Logger.Log($"Mode {mode}");
             
-            CommandWindow.Log($"UnturnedDataSerializer: mode {mode}");
             if (mode == "serializeData") {
                 Level.onLevelLoaded += new LevelLoaded(this.onLevelLoaded);
                 harmony.PatchCategory("Assets");

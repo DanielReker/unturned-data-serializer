@@ -22,14 +22,14 @@ namespace UnturnedDataSerializer {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(DedicatedUGC), "enqueueItemToDownload")]
         static void enqueueItemToDownload_Prefix(PublishedFileId_t item) {
-            CommandWindow.Log($"UnturnedDataSerializer: queued to download {item.m_PublishedFileId}");
+            Logger.Log($"Queued to download {item.m_PublishedFileId}");
             workshopItems.Add(item);
         }
         
         [HarmonyPrefix]
         [HarmonyPatch(typeof(DedicatedUGC), "installNextItem")]
         static void installNextItem_Prefix() {
-            CommandWindow.Log($"UnturnedDataSerializer: {workshopItems.Count} items to download");
+            Logger.Log($"{workshopItems.Count} items to download");
             queryHandle = SteamGameServerUGC.CreateQueryUGCDetailsRequest(workshopItems.ToArray(), (uint)workshopItems.Count);
             SteamGameServerUGC.SetReturnKeyValueTags(queryHandle, true);
             SteamGameServerUGC.SetReturnChildren(queryHandle, true);
@@ -41,14 +41,14 @@ namespace UnturnedDataSerializer {
             items.Add("Unturned", new Item { version = Provider.APP_VERSION_PACKED, dependencies = new SortedSet<string>()});
             
             uint resultsCount = callback.m_unNumResultsReturned;
-            CommandWindow.Log($"UnturnedDataSerializer: {resultsCount} items in query result");
+            Logger.Log($"{resultsCount} items in query result");
             for (uint index = 0; index < resultsCount; index++) {
                 SteamUGCDetails_t details;
                 SteamGameServerUGC.GetQueryUGCResult(queryHandle, index, out details);
                 ulong workshopID = details.m_nPublishedFileId.m_PublishedFileId;
                 uint lastUpdated = details.m_rtimeUpdated;
                 uint childrenCount = details.m_unNumChildren;
-                CommandWindow.Log($"UnturnedDataSerializer: {workshopID}, last update: {lastUpdated}");
+                Logger.Log($"{workshopID}, last update: {lastUpdated}");
                 
                 items.Add(workshopID.ToString(), new Item { version = lastUpdated, dependencies = new SortedSet<string>()});
                 
@@ -57,7 +57,7 @@ namespace UnturnedDataSerializer {
                     childrenCount);
 
                 foreach (var child in children) {
-                    CommandWindow.Log($"UnturnedDataSerializer: \t{child.m_PublishedFileId}");
+                    Logger.Log($"\t{child.m_PublishedFileId}");
                     items[workshopID.ToString()].dependencies.Add(child.m_PublishedFileId.ToString());
                 }
             }

@@ -40,8 +40,6 @@ namespace UnturnedDataSerializer {
             path = path.Substring(path.IndexOf('/') + 1);
             path = path.Substring(path.IndexOf('/') + 1);
 
-            //CommandWindow.Log($"Asset #{assets}: name: {name}, path: {path}");
-
             try {
                 var assetData = (DatDictionary)AccessTools.Field(type, "assetData").GetValue(file);
                 var translationData = (DatDictionary)AccessTools.Field(type, "translationData").GetValue(file);
@@ -57,10 +55,10 @@ namespace UnturnedDataSerializer {
                     Main.assets.Add(assetSerialized["data"]["GUID"].Value<string>(), assetSerialized);
                 } catch (Exception e)
                 {
-                    CommandWindow.LogError("It seems like some asset has no GUID");
+                    Logger.LogError("It seems like some asset has no GUID");
                 }
             } catch (Exception ex) {
-                CommandWindow.Log($"EXCEPTION: {ex.Message}");
+                Logger.LogError($"Exception: {ex.Message}");
             }
         }
     }

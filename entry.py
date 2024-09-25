@@ -6,7 +6,7 @@ import json
 import time
 
 def log(msg):
-    print(f'entry.py: {msg}', flush=True)
+    print(f'entry.py | {msg}', flush=True)
 
 def load_config():
     try:
