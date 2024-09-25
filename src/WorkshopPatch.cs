@@ -33,6 +33,7 @@ namespace UnturnedDataSerializer {
             queryHandle = SteamGameServerUGC.CreateQueryUGCDetailsRequest(workshopItems.ToArray(), (uint)workshopItems.Count);
             SteamGameServerUGC.SetReturnKeyValueTags(queryHandle, true);
             SteamGameServerUGC.SetReturnChildren(queryHandle, true);
+            SteamGameServerUGC.SetAllowCachedResponse(queryHandle, uint.MaxValue);
             SteamAPICall_t hAPICall = SteamGameServerUGC.SendQueryUGCRequest(queryHandle);
             queryCompleted.Set(hAPICall);
         }
