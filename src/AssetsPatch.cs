@@ -6,6 +6,7 @@ using System;
 
 namespace UnturnedDataSerializer {
     [HarmonyPatch(typeof(Assets), "LoadFile")]
+    [HarmonyPatchCategory("Assets")]
     internal class AssetsPatch {
         static JObject SerializeAssetData(DatDictionary assetData) {
             var dataSerialized = Main.SerializeObject(assetData);

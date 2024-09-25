@@ -14,6 +14,8 @@ using UnityEngine;
 namespace UnturnedDataSerializer {
     public class Main : IModuleNexus
     {
+        public static string mode { get; private set; }
+        
         public static SortedDictionary<string, JObject> assets = new SortedDictionary<string, JObject>();
 
         private static readonly JsonSerializerSettings _json = new JsonSerializerSettings() {
@@ -164,6 +166,12 @@ namespace UnturnedDataSerializer {
             writer.endArray();
             writer.endObject();
         }
+        
+        public static void Shutdown() {
+            CommandWindow.Log("Shutting down...");
+            SaveManager.save();
+            Provider.shutdown();
+        }
 
         private void onLevelLoaded(int level) {
             if (level <= Level.BUILD_INDEX_SETUP)
@@ -211,16 +219,23 @@ namespace UnturnedDataSerializer {
             //SerializeAssets(assetsDirectory);
 
 
-            CommandWindow.Log("Shutting down...");
-            SDG.Unturned.SaveManager.save();
-            SDG.Unturned.Provider.shutdown();
+            Shutdown();
         }
 
         public void initialize() {
-            Level.onLevelLoaded += new LevelLoaded(this.onLevelLoaded);
-
             Harmony harmony = new Harmony("unturnedtestmodule");
-            harmony.PatchAll();
+            
+            CommandWindow.Log($"UnturnedDataSerializer: {File.ReadAllText("/app/dataSerializerConfig.json")}");
+            var cfg = JObject.Parse(File.ReadAllText("/app/dataSerializerConfig.json"));
+            mode = cfg["mode"].Value<string>();
+            
+            CommandWindow.Log($"UnturnedDataSerializer: mode {mode}");
+            if (mode == "serializeData") {
+                Level.onLevelLoaded += new LevelLoaded(this.onLevelLoaded);
+                harmony.PatchCategory("Assets");
+            } else if (mode == "getUpdatesInfo") {
+                harmony.PatchCategory("Workshop");
+            }
         }
 
         public void shutdown() {

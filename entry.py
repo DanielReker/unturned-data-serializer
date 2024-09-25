@@ -5,6 +5,8 @@ import os
 import json
 import time
 
+def log(msg):
+    print(f'entry.py: {msg}', flush=True)
 
 def load_config():
     try:
@@ -13,28 +15,40 @@ def load_config():
     except:
         with open("/app/default_configs/config.json") as file:
             return json.load(file)
-        
 
 cfg = load_config()
 server_name = cfg['serverName']
-maps_list = [ map_cfg['name'] for map_cfg in cfg['maps']  ]
-print(maps_list)
+
+maps_list = [ map_cfg['name'] for map_cfg in cfg['maps'] ]
+
+all_workshop_IDs = []
+for map_cfg in cfg['maps']:
+    all_workshop_IDs += map_cfg['workshopIDs']
+log(f'All maps direct dependencies: {all_workshop_IDs}')
+
+def load_versions():
+    try:
+        with open("/app/output/versions.json") as file:
+            return json.load(file)
+    except:
+        return None
+
 
 def update_server():
-    print("Updating server...")
+    log("Updating server...")
     subprocess.run("/home/steam/steamcmd/steamcmd.sh +force_install_dir /app/U3DS +login anonymous +app_update 1110390 +quit", shell=True)
-    
+
 def install_module():
-    print("Installing UnturnedDataSerializer module...")
+    log("Installing UnturnedDataSerializer module...")
     subprocess.run("cp -rf /app/modules/UnturnedDataSerializer /app/U3DS/Modules/", shell=True)
 
 def remove_map_output(map_name):
-    print(f"Removing {map_name} output...")
+    log(f"Removing {map_name} output...")
     subprocess.run(f"rm -r '/app/output/Maps/{map_name}/'", shell=True)
 
 
 def generate_tiles_for_map(map_name, map_type):
-    print(f"Generating tiles for {map_name} {map_type}...")
+    log(f"Generating tiles for {map_name} {map_type}...")
     map_dir = f"/app/output/Maps/{map_name}"
     # TODO: Try to make image re-encoding more efficient
     subprocess.run(f"gdal_translate -of png -expand rgba '{map_dir}/{map_type}.png' /tmp/temp.png", shell=True)
@@ -50,37 +64,44 @@ def generate_tiles_for_map(map_name, map_type):
     html = html[idx_begin::]
     html = html[:html.find(')'):]
     html = re.sub(r'(\w+):', r'"\g<1>":', html)
-    
+
     grid = json.loads(html)
     with open(f'{map_dir}/{map_type}/grid.json', 'w+') as file:
         json.dump(grid, file, indent=4)
 
     subprocess.run(f"rm '{map_dir}/{map_type}/openlayers.html'", shell=True)
 
-def run_server(map_cfg):
-    map_name = map_cfg['name']
-    
-
-    remove_map_output(map_name)
-    
+def run_server(map_name, workshop_IDs, mode):
     os.makedirs(f'/app/U3DS/Servers/{server_name}/Server/', exist_ok=True)
 
     with open(f'/app/default_configs/WorkshopDownloadConfig.json', 'r') as file:
         workshop_cfg = json.load(file)
-    workshop_cfg['File_IDs'] = map_cfg['workshopIDs']
+    workshop_cfg['File_IDs'] = workshop_IDs
     with open(f'/app/U3DS/Servers/{server_name}/WorkshopDownloadConfig.json', 'w+') as file:
         json.dump(workshop_cfg, file)
-    
+
     with open(f'/app/U3DS/Servers/{server_name}/Server/Commands.dat', 'w+') as file:
         file.write(f'Map {map_name}')
 
-    print(f"Running server for {map_name}")
-    
+    dataSerializerConfig = {
+        'mode': mode
+    }
+    with open('/app/dataSerializerConfig.json', 'w+') as file:
+        json.dump(dataSerializerConfig, file)
+
+    log(f"Running server for {map_name}")
     subprocess.run(f'cd /app/U3DS && ./ServerHelper.sh +LanServer/{server_name}', shell=True)
-    
+
+def fetch_map_data(map_cfg):
+    map_name = map_cfg['name']
+
+    remove_map_output(map_name)
+
+    run_server(map_name, map_cfg['workshopIDs'], "serializeData")
+
     generate_tiles_for_map(map_name, 'Map')
     generate_tiles_for_map(map_name, 'Chart')
-    
+
 
 def generate_metadata():
     with open('/app/U3DS/Status.json', 'r') as file:
@@ -115,11 +136,52 @@ def clean_output():
             os.remove(path)
         elif name not in maps_list:
             shutil.rmtree(path)
-            
+
+def get_updated_maps():
+    old_versions = load_versions()
+    run_server("PEI", all_workshop_IDs, "getUpdatesInfo")
+    versions = load_versions()
+
+    if old_versions is None or versions is None:
+        return maps_list
+
+    def is_updated(item):
+        if item not in versions:
+            log(f'Item {item} was not found in versions.json')
+            return True
+
+        if 'is_updated' in versions[item]:
+            return versions[item]['is_updated']
+
+        if item not in old_versions or old_versions[item]['version'] != versions[item]['version'] or old_versions[item]['version'] != versions[item]['version']:
+            versions[item]['is_updated'] = True
+            return True
+
+        for dependency in versions[item]['dependencies']:
+            if is_updated(dependency):
+                versions[item]['is_updated'] = True
+                return True
+
+        versions[item]['is_updated'] = False
+        return False
+
+    def is_any_updated(items):
+        for item in items:
+            if is_updated(str(item)):
+                return True
+        return False
+
+    if is_updated('Unturned'):
+        return maps_list
+
+    return [ map_cfg['name'] for map_cfg in cfg['maps'] if is_any_updated(map_cfg['workshopIDs'] + [ 'Unturned' ]) ]
 
 update_server()
 install_module()
 clean_output()
+updated_maps = get_updated_maps()
+log(f'Updated maps: {updated_maps}')
 for map_cfg in cfg['maps']:
-    run_server(map_cfg)
+    if map_cfg['name'] in updated_maps:
+        fetch_map_data(map_cfg)
 generate_metadata()
