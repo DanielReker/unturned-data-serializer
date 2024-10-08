@@ -50,11 +50,46 @@ def remove_map_output(map_name):
 def generate_tiles_for_map(map_name, map_type):
     log(f"Generating tiles for {map_name} {map_type}...")
     map_dir = f"/app/output/Maps/{map_name}"
-    # TODO: Try to make image re-encoding more efficient
+
+    with open(f'{map_dir}/map_bounds.json') as file:
+        world_bounds = json.load(file)['worldBounds']
+
+    # TODO: Try to make image re-encoding and resampling more efficient
     subprocess.run(f"gdal_translate -of png -expand rgba '{map_dir}/{map_type}.png' /tmp/temp.png", shell=True)
     subprocess.run(f"[ -f /tmp/temp.png ] && mv -f /tmp/temp.png '{map_dir}/{map_type}.png'", shell=True)
-    subprocess.run(f"gdal2tiles.py -p raster --xyz '{map_dir}/{map_type}.png' '{map_dir}/{map_type}/'", shell=True)
 
+    subprocess.run(f"gdalinfo '{map_dir}/{map_type}.png' > /tmp/gdalinfo.out", shell=True)
+    with open('/tmp/gdalinfo.out', 'r') as file:
+        gdalinfo = file.read()
+        match = re.search(r"Size is (\d+), (\d+)", gdalinfo)
+        img_x = int(match.group(1))
+        img_y = int(match.group(2))
+
+    x_ratio = (world_bounds['max']['x'] - world_bounds['min']['x']) / img_x
+    y_ratio = (world_bounds['max']['z'] - world_bounds['min']['z']) / img_y
+
+    new_img_x = img_x
+    new_img_y = img_y
+    if x_ratio > y_ratio:
+        new_img_x = round(img_x * x_ratio / y_ratio)
+    elif y_ratio > x_ratio:
+        new_img_y = round(img_y * y_ratio / x_ratio)
+        
+    world_file_path = f'{map_dir}/{map_type}.pgw'
+    with open(world_file_path, 'w+') as file:
+        file.write(f"{x_ratio}\n0\n0\n-{y_ratio}\n{world_bounds['min']['x']}\n{world_bounds['max']['z']}")
+
+    log(f'img_x = {img_x}, img_y = {img_y}, new_img_x = {new_img_x}, new_img_y = {new_img_y}')
+    log(f'x_ratio = {x_ratio}, y_ratio = {y_ratio}')
+    if img_x == new_img_x and img_y == new_img_y:
+        log('No need to resample image')
+    else:
+        log('Resampling image...')
+        subprocess.run(f"gdalwarp -ts {new_img_x} {new_img_y} -r near '{map_dir}/{map_type}.png' /tmp/temp.png", shell=True)
+        subprocess.run(f"[ -f /tmp/temp.png ] && mv -f /tmp/temp.png '{map_dir}/{map_type}.png'", shell=True)
+
+    subprocess.run(f"gdal2tiles.py -p raster --xyz '{map_dir}/{map_type}.png' '{map_dir}/{map_type}/'", shell=True)
+    
     # Save grid info as JSON
     # TODO: Rewrite grid info fetching
     with open(f'{map_dir}/{map_type}/openlayers.html', 'r') as file:
@@ -69,6 +104,7 @@ def generate_tiles_for_map(map_name, map_type):
     with open(f'{map_dir}/{map_type}/grid.json', 'w+') as file:
         json.dump(grid, file, indent=4)
 
+    subprocess.run(f"rm '{world_file_path}'", shell=True)
     subprocess.run(f"rm '{map_dir}/{map_type}/openlayers.html'", shell=True)
 
 def run_server(map_name, workshop_IDs, mode):
@@ -130,6 +166,7 @@ def generate_metadata():
 
 def clean_output():
     directory = '/app/output/Maps'
+    os.makedirs(directory, exist_ok=True)
     for name in os.listdir(directory):
         path = os.path.join(directory, name)
         if os.path.isfile(path):
